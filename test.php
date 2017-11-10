@@ -29,6 +29,34 @@ $api_url = 'https://commons.wikimedia.org/w/api.php';
 $wiki = new Wikimate($api_url);
 $wiki->setDebugMode(true);
 
+
+$pages = new WikiPages($wiki);
+$pages->getFileListFromCategoryName('Images from Wiki Loves Monuments 2017 in France',500);
+foreach ($pages->getPageList() as $i => $title) {
+    // title is already prefixed by "File:"
+    //$page = $wiki->getPage("$title");
+    $page=new WikiRevisions("$title",$wiki);  
+    $id=$h->getHeritageId($page->getText()); 
+    if ($id===FALSE) {
+        $revs=$page->getRevisions();
+        foreach ($revs as $rev) {
+            $id=$h->getHeritageId($rev->content); 
+            if ($id !== FALSE) break;
+        }
+        if ($id===FALSE) { 
+            print "Heritage id not found for $title\n";
+        } else {
+            print "Heritage id $id found in rev {$rev->timestamp} for $title\n"; 
+        }
+        // ex File:Phalsbourg (Moselle) Place d'Armes 02 MH.jpg
+        //print $page->getText() . "\n\n";
+     } else { 
+        print "Heritage id $id for $title\n"; 
+    }
+}
+
+die();
+
 $title="Saint-Dié-des-Vosges - poterne ancien château.jpg";
 $page = $wiki->getPage("File:$title");
 $file = $wiki->getFile($title);
@@ -36,8 +64,10 @@ $username=$file->getUser();
 echo "DDD exists ". $file->exists(). " \n"; 
 echo "DDD $username \n";
 
-$id= $id=$h->getHeritageId($page->getText()); 
+$id=$h->getHeritageId($page->getText()); 
 echo "DDD mérimée $id\n";
+die();
+
 
 $revs=new WikiRevisions("File:$title",$wiki);  
 $revs->getRevisions();
@@ -66,7 +96,4 @@ if ($date1->getTimestamp() >= $debut->getTimestamp() && $date1->getTimestamp() <
 die();
 
 
-
-$pages = new WikiPages($wiki);
-$pages->getFileListFromCategoryName('Images from Wiki Loves Monuments 2017 in France');
 

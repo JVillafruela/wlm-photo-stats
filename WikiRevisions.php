@@ -1,5 +1,5 @@
 <?php
-require 'WikiRevision.php';
+require_once 'WikiRevision.php';
 
 class WikiRevisions extends WikiPage {
 // var @array    
@@ -90,7 +90,7 @@ class WikiRevisions extends WikiPage {
                 )
          */
         
-
+        return $this->revisions;
     }
     
     public function getLastRevision()  {

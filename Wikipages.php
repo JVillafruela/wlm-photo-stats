@@ -12,7 +12,7 @@ class WikiPages {
     }
 
     // /w/api.php?action=query&format=json&list=categorymembers&cmtitle=Category%3AImages%20from%20Wiki%20Loves%20Monuments%202017%20in%20France&cmprop=ids%7Ctitle&cmtype=file&cmlimit=max&cmsort=timestamp&cmdir=ascending
-    public function getFileListFromCategoryName($name) {
+    public function getFileListFromCategoryName($name,$limit=null) {
         $contName = 'cmcontinue';
         $iter = 0;
         $data = array(
@@ -52,7 +52,8 @@ class WikiPages {
                 $title = $member['title'];
                 $id = $member['pageid'];
                 //echo "DDD $id $title \n";
-                $this->pagelist[] = $id;
+                $this->pagelist[] = $title;
+                if (!is_null($limit) && count($this->pagelist)==$limit) return true;
             }
 
             if (isset($r['error'])) {
@@ -69,6 +70,11 @@ class WikiPages {
         } while ($continue);
 
         return true;
+    }
+    
+    
+    public function getPageList() {
+        return $this->pagelist;
     }
 
 }
