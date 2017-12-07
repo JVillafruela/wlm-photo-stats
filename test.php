@@ -6,6 +6,15 @@ require 'WikiPages.php';
 require 'WikiRevision.php';
 require 'WikiRevisions.php';
 require 'heritage.php';
+require 'MonumentsDb.php';
+require 'ExifData.php';
+
+
+$mdb=new MonumentsDb();
+$mdb->setDebugMode(true);
+$result=$mdb->searchById('PA00090753', 'fr');
+print_r($result);
+
 
 $h=new Heritage('fr');
 //https://commons.wikimedia.org/wiki/Template:M%C3%A9rim%C3%A9e
@@ -28,6 +37,22 @@ $api_url = 'https://commons.wikimedia.org/w/api.php';
 
 $wiki = new Wikimate($api_url);
 $wiki->setDebugMode(true);
+
+
+
+$title="Saint-Dié-des-Vosges - poterne ancien château.jpg"; //Canon EOS 6D 
+//$title ="Appartement_Diane_Ancy-le-Franc_12.jpg"; // Canon PowerShot S120 
+//$title="Village martyr d'Oradour-sur-Glane 10.jpg"; // iPhone 6s 
+//$title="Chapelle_de_la_Vieille_Charité_Marseille_2017.jpg"; // Canon PowerShot G9 X 
+//$title="Vue de la façade du château du Rivau depuis le conservatoire des légumes.jpg"; // DMC-FZ1000 
+//$title="Aulnay 3.jpg"; // Canon PowerShot G16 
+$file = $wiki->getFile($title);
+$metadata=$file->getCommonMetadata();
+$exif=new ExifData($metadata);
+echo "$exif->Make $exif->Model \n";
+if (isset($exif->Lens )) echo "$exif->Lens \n";
+if (isset($exif->Software )) echo "$exif->Software \n";
+die();
 
 
 $pages = new WikiPages($wiki);
