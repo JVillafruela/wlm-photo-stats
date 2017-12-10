@@ -14,6 +14,7 @@ class WikiRevisions extends WikiPage {
 
     // /w/api.php?action=query&format=json&prop=revisions&titles=File%3ASaint-Di%C3%A9-des-Vosges%20-%20poterne%20ancien%20ch%C3%A2teau.jpg&rvprop=ids|timestamp|flags|comment|user|content&rvlimit=max&rvdir=older
     public function getRevisions($refresh=false) {
+        echo "DDD getRevisions $this->title invalid $this->invalid \n";
         if ($this->invalid) return null;
         if (!$refresh && is_array($this->revisions)) return $this->revisions;
 
@@ -103,5 +104,10 @@ class WikiRevisions extends WikiPage {
         $nb=count($this->revisions);
         return $this->revisions[$nb-1];
     }
-    
+
+    public function getUser() {
+        if (is_null($this->revisions)) return null;
+        return $this->revisions[0]->$user;
+    }
+
 }
