@@ -22,7 +22,7 @@ $wiki->setDebugMode(true);
 
 
 $pages = new WikiPages($wiki);
-$pages->getFileListFromCategoryName(WLM_CATEGORY,5);
+$pages->getFileListFromCategoryName(WLM_CATEGORY,1);
 foreach ($pages->getPageList() as $i => $title) {
     // title is already prefixed by "File:"
     //$page = $wiki->getPage("$title");
@@ -50,7 +50,14 @@ foreach ($pages->getPageList() as $i => $title) {
     $user = new WikiUser($username, $wiki);
     if (!$user->exists()) continue;
     $id_user=updateUser($user);
-
+    
+    $monument=getMonument($idh,COUNTRY,LANG);
+    if (!$monument) {
+        print "ERR Monument $idh not found in monumentsdb \n";
+        continue;
+    }
+    
+    $id_monument=updateMonument($monument);
 }
 
 /**
@@ -75,3 +82,54 @@ function updateUser(WikiUser $wkuser) {
     return $user->id;
 }
 
+/**
+ * Looks up for monument in monumentdb
+ * @param string $idh identifier 
+ * @param string $country
+ * @param string $lang
+ * @return object monuments_all record or false if not found
+ */
+function getMonument($idh,$country,$lang) {
+    $monument = ORM::for_table('monuments_all','monumentsdb')->find_one( array(
+        'country' => $country,
+        'lang' => $lang,
+        'id' => $idh  
+    ));
+    
+    return $monument;    
+        
+}
+
+/**
+ * Looks up for monument in stats database
+ * if not found record is added to db 
+ * @param object $monumentdb monuments_all record
+ * @return mixed id or false
+ */
+function updateMonument($monumentdb) {
+    $monument = ORM::for_table('monument')->where( array(
+        'country' => $monumentdb->country,
+        'lang' => $monumentdb->lang,
+        'heritage_id' => $monumentdb->id  
+    ))->find_one();    
+    
+    if($monument !== false ) return $monument->id;
+    
+    $monument = ORM::for_table('monument')->create();
+    
+    $monument->country     = $monumentdb->country;
+    $monument->lang        = $monumentdb->lang;
+    $monument->heritage_id = $monumentdb->id;  
+    $monument->name        = $monumentdb->name;   
+    $monument->municipality= $monumentdb->municipality;   
+    $monument->adm_level   = $monumentdb->adm2;   
+    $monument->lat         = $monumentdb->lat;   
+    $monument->lon         = $monumentdb->lon;   
+    $monument->wikidata    = $monumentdb->wd_item;   
+    $monument->commonscat  = $monumentdb->commonscat;   
+
+    $monument->save();
+    
+    return $monument->id;
+    
+} 

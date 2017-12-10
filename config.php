@@ -30,6 +30,6 @@ ORM::configure('mysql:host='. DBM_HOST .';dbname='. DBM_NAME, null, 'monumentsdb
 ORM::configure('username', DBM_USER, 'monumentsdb');
 ORM::configure('password', DBM_PWD, 'monumentsdb');
 
-
-
-
+ORM::configure('id_column_overrides', array(
+    'monuments_all' => array('country','lang','id')
+    ),'monumentsdb');
