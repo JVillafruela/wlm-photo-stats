@@ -22,7 +22,7 @@ $wiki->setDebugMode(true);
 
 
 $pages = new WikiPages($wiki);
-$pages->getFileListFromCategoryName(WLM_CATEGORY,1);
+$pages->getFileListFromCategoryName(WLM_CATEGORY,10);
 foreach ($pages->getPageList() as $i => $title) {
     // title is already prefixed by "File:"
     //$page = $wiki->getPage("$title");
@@ -36,7 +36,6 @@ foreach ($pages->getPageList() as $i => $title) {
         }
         if ($idh===FALSE) { 
             print "Heritage id not found for $title\n";
-            continue;
         } else {
             print "Heritage id $idh found in rev {$rev->timestamp} for $title\n"; 
         }
@@ -48,16 +47,25 @@ foreach ($pages->getPageList() as $i => $title) {
     
     $username=$file->getUser();
     $user = new WikiUser($username, $wiki);
-    if (!$user->exists()) continue;
-    $id_user=updateUser($user);
-    
-    $monument=getMonument($idh,COUNTRY,LANG);
-    if (!$monument) {
-        print "ERR Monument $idh not found in monumentsdb \n";
+    if (!$user->exists()) {
+        print "ERR User $username not found \n";
         continue;
     }
+    $id_user=updateUser($user);
     
-    $id_monument=updateMonument($monument);
+    if($idh) {
+        $monument=getMonument($idh,COUNTRY,LANG);
+        if (!$monument) {
+            print "ERR Monument $idh not found in monumentsdb \n";
+            continue;
+        }
+        $id_monument=updateMonument($monument);
+    } else {
+        $id_monument=false;
+    }
+    
+    $id_photo=updatePhoto($page,$file,$id_monument,$id_user);
+   
 }
 
 /**
@@ -120,8 +128,8 @@ function updateMonument($monumentdb) {
     $monument->country     = $monumentdb->country;
     $monument->lang        = $monumentdb->lang;
     $monument->heritage_id = $monumentdb->id;  
-    $monument->name        = $monumentdb->name;   
-    $monument->municipality= $monumentdb->municipality;   
+    $monument->name        = removeWikiCode($monumentdb->name);   
+    $monument->municipality= removeWikiCode($monumentdb->municipality);   
     $monument->adm_level   = $monumentdb->adm2;   
     $monument->lat         = $monumentdb->lat;   
     $monument->lon         = $monumentdb->lon;   
@@ -133,3 +141,52 @@ function updateMonument($monumentdb) {
     return $monument->id;
     
 } 
+
+/*
+ * [[Bibliothèque municipale de Grenoble|Bibliothèque]]<br />(ancienne bibliothèque universitaire)
+ * [[Palais des sports de Grenoble|Palais des sports]]
+ * [[Palais de justice de Bordeaux#La construction du tribunal de grande instance en 1998|Tribunal de grande instance de Bordeaux]]
+ * [[Chapelle Saint-Maurice de Domgermain|Chapelle Saint-Maurice]]<br /><small>chapelle en totalité ainsi que ses peintures murales</small>
+ */
+function removeWikiCode($text) {
+    if (preg_match('/^\[\[(.*)\]\](.*)$/', $text, $matches, PREG_OFFSET_CAPTURE) === 1) {
+        $text=$matches[1][0];
+    }
+    
+    if (preg_match('/^(.*)[\|#].*$/', $text, $matches, PREG_OFFSET_CAPTURE) !== 1) 
+        return $text;
+    
+    return $matches[1][0];
+}
+
+
+function updatePhoto(WikiRevisions $page,WikiFile $file,$id_monument,$id_user) {
+    $title=$file->getFilename();     
+    $photo = ORM::for_table('photo')->where('file', $title)->find_one();  
+    if ($photo!==false ) return $photo->id; 
+    
+    $photo = ORM::for_table('photo')->create();
+    $photo->file = $title;
+    $photo->wpid = null; // +++
+    $photo->user_id = $id_user ? $id_user : null;
+    $photo->monument_id = $id_monument ? $id_monument : null;
+    $rev= $page->getFirstRevision();
+    $date = new DateTime($rev->timestamp);
+    $photo->date_wp =  $date->format("Y-m-d H:i:s");
+    
+    $metadata=$file->getCommonMetadata();
+    $exif=new ExifData($metadata);
+    $photo->camera_brand = isset($exif->Make) ? $exif->Make :null;
+    $photo->camera_model = isset($exif->Model) ? $exif->Model :null;
+    $photo->lens = isset($exif->Lens) ? $exif->Lens :null; 
+    $photo->software = isset($exif->Software) ? $exif->Software :null; 
+    
+    if(isset($exif->DateTime)) {
+        $date = new DateTime($exif->DateTime);
+        $photo->date_exif=$date->format("Y-m-d H:i:s");
+    }
+        
+    $photo->save();
+    
+    return $photo->id;     
+}

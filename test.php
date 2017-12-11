@@ -10,6 +10,10 @@ require 'MonumentsDb.php';
 require 'ExifData.php';
 
 
+
+echo removeWikiCode("[[Bibliothèque]]") . "\n";
+die();
+
 $mdb=new MonumentsDb();
 $mdb->setDebugMode(true);
 $result=$mdb->searchById('PA00090753', 'fr');
@@ -120,5 +124,15 @@ if ($date1->getTimestamp() >= $debut->getTimestamp() && $date1->getTimestamp() <
 
 die();
 
-
-
+function removeWikiCode($text) {
+    echo "DDD1 $text \n";
+    if (preg_match('/^\[\[(.*)\]\](.*)$/', $text, $matches, PREG_OFFSET_CAPTURE) === 1) {
+        $text=$matches[1][0];
+    }
+    
+    echo "DDD2 $text \n";
+    if (preg_match('/^(.*)[\|#].*$/', $text, $matches, PREG_OFFSET_CAPTURE) !== 1) 
+        return $text;
+    
+    return $matches[1][0];
+}

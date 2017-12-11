@@ -10,6 +10,7 @@ class WikiRevisions extends WikiPage {
         parent::__construct($title, $wikimate);
         $this->revisions = null;
         $this->pageid =null;
+        $this->getRevisions(true);
     }
 
     // /w/api.php?action=query&format=json&prop=revisions&titles=File%3ASaint-Di%C3%A9-des-Vosges%20-%20poterne%20ancien%20ch%C3%A2teau.jpg&rvprop=ids|timestamp|flags|comment|user|content&rvlimit=max&rvdir=older

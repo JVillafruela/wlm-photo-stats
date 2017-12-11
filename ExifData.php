@@ -3,7 +3,7 @@
 /**
  * Description of ExifData
  *
- * @author Jérôme
+ * @author Jérôme Villafruela
  */
 class ExifData {
     
