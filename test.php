@@ -8,8 +8,14 @@ require 'WikiRevisions.php';
 require 'heritage.php';
 require 'MonumentsDb.php';
 require 'ExifData.php';
+require 'LocationService.php';
 
 
+
+$ls=new LocationService('fr');
+$data=$ls->getAdm2(43.775811,4.831386);
+echo "$data \n";
+die();
 
 echo removeWikiCode("[[Bibliothèque]]") . "\n";
 die();

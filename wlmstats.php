@@ -69,7 +69,7 @@ foreach ($pages->getPageList() as $i => $title) {
 }
 
 /**
- * Looks foor user in database and add it if not present
+ * Looks for user in database and add it if not present
  * 
  * @param WikiUser $wkuser
  * @return integer user id
